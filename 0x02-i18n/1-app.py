@@ -38,7 +38,7 @@ def hello_holberton():
     Example
         hello_hoberton()
     """""
-    return render_template("0-index.html")
+    return render_template("1-index.html")
 
 
 if __name__ == "__main__":

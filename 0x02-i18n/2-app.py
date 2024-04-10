@@ -5,7 +5,7 @@ A simple module to learn and
 practice i18n in flask
 """
 
-from flask import Flask,  render_template
+from flask import Flask,  render_template, request
 from flask_babel import Babel
 
 
@@ -20,6 +20,16 @@ class Config:
 
 app = Flask(__name__)
 babel = Babel(app)
+
+
+@babel.localeselector
+def get_locale():
+    """
+    Get the locale based on the request
+    Header from the frontend application
+    """
+    return request.accept_languages.best_match(["en", "fr", "de"])
+
 
 app.config.from_object(Config)
 babel.init_app(app)
@@ -38,7 +48,7 @@ def hello_holberton():
     Example
         hello_hoberton()
     """""
-    return render_template("0-index.html")
+    return render_template("1-index.html")
 
 
 if __name__ == "__main__":
