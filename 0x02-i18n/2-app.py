@@ -5,51 +5,29 @@ A simple module to learn and
 practice i18n in flask
 """
 
-from flask import Flask,  render_template, request
+from flask import Flask, render_template, request
 from flask_babel import Babel
 
-
 class Config:
-    """
-    Configure the babel object
-    """
+    """Create a Flask Babel configuration."""
     LANGUAGES = ["en", "fr"]
-    BABEL_DEFAULT_LOCALE = 'en'
-    BABEL_DEFAULT_TIMEZONE = 'UTC'
-
 
 app = Flask(__name__)
+app.config_class = Config
+app.config['LANGUAGES'] = Config.LANGUAGES
+app.config['BABEL_DEFAULT_LOCALE'] = 'en'
+app.config['BABEL_DEFAULT_TIMEZONE'] = 'UTC'
 babel = Babel(app)
-
 
 @babel.localeselector
 def get_locale():
-    """
-    Get the locale based on the request
-    Header from the frontend application
-    """
-    return request.accept_languages.best_match(["en", "fr", "de"])
+    """Get locale language from request"""
+    return request.accept_languages.best_match(app.config_class.LANGUAGES)
 
+@app.route('/')
+def index():
+    """index page of the app"""
+    return render_template('2-index.html')
 
-app.config.from_object(Config)
-babel.init_app(app)
-
-
-@app.route("/", strict_slashes=False)
-def hello_holberton():
-    """
-    A simple function that returns
-    Hello world from a flask template
-    Args:
-        None
-    Returns:
-        Returns a flask template
-    ____________________________
-    Example
-        hello_hoberton()
-    """""
-    return render_template("1-index.html")
-
-
-if __name__ == "__main__":
-    app.run()
+if __name__ == '__main__':
+    app.run(debug=True)
