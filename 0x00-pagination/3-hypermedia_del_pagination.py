@@ -16,51 +16,70 @@ class Server:
     DATA_FILE = "Popular_Baby_Names.csv"
 
     def __init__(self):
-        """
-        The constructor
-        """
         self.__dataset = None
+        self.__indexed_dataset = None
 
     def dataset(self) -> List[List]:
-        """
-        Cached dataset
+        """Cached dataset
         """
         if self.__dataset is None:
-            with open(self.DATA_FILE, "r", encoding="utf-8") as f:
+            with open(self.DATA_FILE) as f:
                 reader = csv.reader(f)
                 dataset = [row for row in reader]
             self.__dataset = dataset[1:]
 
         return self.__dataset
 
-    @staticmethod
-    def index_range(page: int, page_size: int) -> Tuple[int, int]:
+    def indexed_dataset(self) -> Dict[int, List]:
+        """Dataset indexed by sorting position, starting at 0
         """
-        The Actuall helper function
-        Args:
-            page (int):
-            page_size (int):
+        if self.__indexed_dataset is None:
+            dataset = self.dataset()
+            truncated_dataset = dataset[:1000]
+            self.__indexed_dataset = {
+                i: dataset[i] for i in range(len(dataset))
+            }
+        return self.__indexed_dataset
+
+    def get_hyper_index(self, index: int = None, page_size: int = 10) -> Dict:
+        """
+        Get a page of indexed data from a dataset.
+
+        Parameters:
+            index (int, optional): The index from which to start fetching data
+            If not specified, it starts from the beginning.
+            page_size (int, optional): The number of items to fetch in one page
+
         Returns:
-            Returns an tupple of ints
-        """
-        if isinstance(page, int) and isinstance(page_size, int):
-            return ((page - 1) * page_size, page_size * page)
-        raise TypeError('Expected `page` and `page_size` to be ints')
+            Dict: A dictionary containing the page info including the index
+            next_index, page_size, and data.
 
-    def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
-        """
-        Get paginated data
-        Args:
-            page (int)
-            page_size (int)
-        """
-        assert isinstance(page, int) and page > 0
-        assert isinstance(page_size, int) and page_size > 0
+        Raises:
+            AssertionError: If the provided index is out of bounds.
 
-        data = self.dataset()
+        """
+        data = self.indexed_dataset()
+        assert index is not None and index >= 0 and index <= max(data.keys())
+        page_data = []
+        data_count = 0
+        next_index = None
+        start = index if index else 0
 
-        try:
-            (start, end) = index_range(page, page_size)
-            return data[start:end]
-        except IndexError:
-            return []
+        for i, item in data.items():
+            if data_count >= page_size:
+                next_index = i
+                break
+
+            if i < start:
+                continue
+
+            page_data.append(item)
+            data_count += 1
+
+        page_info = {
+            'index': index,
+            'next_index': next_index,
+            'page_size': len(page_data),
+            'data': page_data,
+        }
+        return page_info
