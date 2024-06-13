@@ -1,0 +1,4 @@
+/test
+*-main.py
+/node_modules
+/redis-6.0.10
